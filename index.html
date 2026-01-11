@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>專業交易風控計算器</title>
+    <title>專業交易風控計算器 - 進階版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #f3f4f6; color: #374151; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         .input-card { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .result-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .section-title { color: #1e40af; font-weight: bold; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 16px; }
-        input, select { border: 1px solid #d1d5db; border-radius: 4px; padding: 8px; width: 100%; font-size: 14px; }
-        label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; font-weight: 500; }
+        input, select { border: 1px solid #d1d5db; border-radius: 4px; padding: 10px; width: 100%; font-size: 14px; background-color: #f9fafb; }
+        label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; font-weight: 600; }
         .btn-active { background-color: #eff6ff; border: 2px solid #3b82f6; color: #1e40af; }
         .btn-inactive { background-color: white; border: 1px solid #d1d5db; color: #6b7280; }
+        .suggestion-box { background-color: #f0fdf4; border: 1px dashed #22c55e; padding: 8px; border-radius: 6px; margin-top: 4px; }
     </style>
 </head>
 <body class="py-10 px-4">
@@ -21,30 +22,26 @@
     <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         <div class="input-card p-6">
-            <h2 class="section-title">1. 帳戶與合約設定</h2>
+            <h2 class="section-title">1. 帳戶與基本設定</h2>
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div class="col-span-2">
                     <label>交易商品 (Symbol)</label>
-                    <select id="symbol" onchange="updateContractSize()">
+                    <select id="symbol" onchange="calculateAll()">
                         <option value="XAUUSD">黃金 (XAUUSD)</option>
                         <option value="FOREX">貨幣對 (FX Pairs)</option>
                     </select>
                 </div>
                 <div>
                     <label>帳戶餘額 (USD)</label>
-                    <input type="number" id="balance" value="2000">
+                    <input type="number" id="balance" value="2000" oninput="calculateAll()">
                 </div>
                 <div>
                     <label>槓桿 (1:X)</label>
-                    <input type="number" id="leverage" value="500">
+                    <input type="number" id="leverage" value="500" oninput="calculateAll()">
                 </div>
-                <div>
+                <div class="col-span-2">
                     <label>單筆風險 (%)</label>
-                    <input type="number" id="riskPct" value="1">
-                </div>
-                <div>
-                    <label>合約規格 (Size)</label>
-                    <input type="number" id="contractSize" value="100" readonly>
+                    <input type="number" id="riskPct" value="1" oninput="calculateAll()">
                 </div>
             </div>
 
@@ -56,20 +53,30 @@
                 </div>
                 <div class="col-span-2">
                     <label>進場價格 (Entry Price)</label>
-                    <input type="number" id="entryPrice" value="2300" step="0.01">
+                    <input type="number" id="entryPrice" value="2300" step="0.01" oninput="calculateAll()">
                 </div>
-                <div class="border-l-4 border-red-500 pl-3">
-                    <label>止損 (Stop Loss)</label>
-                    <input type="number" id="stopLoss" value="2298" step="0.01">
+                
+                <div>
+                    <label class="text-red-600">手動止損 (Stop Loss)</label>
+                    <input type="number" id="stopLoss" value="2298" step="0.01" oninput="calculateAll()">
+                    <div class="suggestion-box">
+                        <p class="text-[10px] text-green-700 font-bold">建議止損 (SL)</p>
+                        <p id="suggestSL" class="text-sm font-mono text-green-800">--</p>
+                    </div>
                 </div>
-                <div class="border-l-4 border-blue-500 pl-3">
-                    <label>止盈 (Take Profit)</label>
-                    <input type="number" id="takeProfit" value="2304" step="0.01">
+
+                <div>
+                    <label class="text-blue-600">手動止盈 (Take Profit)</label>
+                    <input type="number" id="takeProfit" value="2304" step="0.01" oninput="calculateAll()">
+                    <div class="suggestion-box">
+                        <p class="text-[10px] text-green-700 font-bold">建議止盈 (TP)</p>
+                        <p id="suggestTP" class="text-sm font-mono text-green-800">--</p>
+                    </div>
                 </div>
             </div>
 
-            <button onclick="calculateAll()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-lg text-lg transition shadow-lg">
-                立即計算 (CALCULATE)
+            <button onclick="calculateAll()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg text-lg transition shadow-lg mt-4">
+                立即更新數據
             </button>
         </div>
 
@@ -77,47 +84,47 @@
             <h2 class="text-blue-900 font-bold text-lg mb-2">3. 計算結果 (Results)</h2>
             
             <div class="bg-orange-400 text-white p-6 rounded-lg text-center shadow-md">
-                <p class="text-xs uppercase opacity-90">⚠ 建議開倉手數 (Recommended)</p>
-                <h3 id="resLots" class="text-5xl font-black my-2">0.10</h3>
-                <p id="resRiskDesc" class="text-xs italic">基於 1% 風險控管</p>
+                <p class="text-xs uppercase opacity-90 font-bold">建議開倉手數 (Lots)</p>
+                <h3 id="resLots" class="text-6xl font-black my-2">0.10</h3>
+                <p id="resRiskDesc" class="text-xs italic">基於風險管理自動計算</p>
             </div>
 
             <div class="grid grid-cols-2 gap-4 text-white font-bold">
-                <div class="bg-red-500 p-4 rounded-lg text-center">
-                    <p class="text-xs opacity-80">止損虧損</p>
+                <div class="bg-red-500 p-4 rounded-lg text-center shadow">
+                    <p class="text-xs opacity-80 uppercase">止損預計虧損</p>
                     <p id="resLossMoney" class="text-xl">$20.00</p>
                 </div>
-                <div class="bg-blue-600 p-4 rounded-lg text-center">
-                    <p class="text-xs opacity-80">止盈獲利</p>
+                <div class="bg-blue-600 p-4 rounded-lg text-center shadow">
+                    <p class="text-xs opacity-80 uppercase">止盈預計獲利</p>
                     <p id="resProfitMoney" class="text-xl">$40.00</p>
                 </div>
             </div>
 
-            <div class="result-card p-6 space-y-3 text-sm">
+            <div class="result-card p-6 space-y-4 text-sm">
                 <div class="flex justify-between border-b pb-2">
                     <span class="text-gray-500">盈虧比 (R:R Ratio)</span>
-                    <span id="resRR" class="font-bold">1 : 2.00</span>
+                    <span id="resRR" class="font-bold text-blue-700">1 : 2.00</span>
                 </div>
                 <div class="flex justify-between border-b pb-2">
                     <span class="text-gray-500">佔用保證金 (Margin)</span>
                     <span id="resMargin" class="font-bold text-gray-700">$46.00</span>
                 </div>
                 <div class="flex justify-between border-b pb-2">
-                    <span class="text-gray-500">保證金比例 (Level)</span>
+                    <span class="text-gray-500">保證金比例 (Margin Level)</span>
                     <span id="resMarginLevel" class="font-bold text-green-600">4347%</span>
                 </div>
                 
-                <div class="bg-gray-800 text-yellow-400 p-4 rounded-lg text-center mt-6">
-                    <p class="text-[10px] uppercase mb-1">☠ 強制平倉價格 (Liquidation Price)</p>
+                <div class="bg-slate-800 text-yellow-400 p-4 rounded-lg text-center mt-6 shadow-inner">
+                    <p class="text-[10px] uppercase mb-1 tracking-widest">強制平倉參考價 (Liquidation)</p>
                     <p id="resLiqPrice" class="text-2xl font-bold font-mono">$2250.00</p>
-                    <p class="text-[9px] text-gray-400 mt-1">當保證金比例低於 25% 時</p>
+                    <p class="text-[9px] text-gray-400 mt-1">當餘額虧損達 75% 時</p>
                 </div>
             </div>
         </div>
     </div>
 
     <footer class="text-center text-gray-400 text-[10px] mt-10">
-        © ForexRiskHub | Trading involves risk. Please trade responsibly.
+        © ForexRiskHub | 僅供參考，交易請謹慎。
     </footer>
 
     <script>
@@ -130,46 +137,52 @@
             calculateAll();
         }
 
-        function updateContractSize() {
-            const sym = document.getElementById('symbol').value;
-            document.getElementById('contractSize').value = sym === 'XAUUSD' ? 100 : 100000;
-            calculateAll();
-        }
-
         function calculateAll() {
-            const balance = parseFloat(document.getElementById('balance').value);
-            const riskPct = parseFloat(document.getElementById('riskPct').value);
-            const entry = parseFloat(document.getElementById('entryPrice').value);
-            const sl = parseFloat(document.getElementById('stopLoss').value);
-            const tp = parseFloat(document.getElementById('takeProfit').value);
-            const lev = parseFloat(document.getElementById('leverage').value);
-            const size = parseFloat(document.getElementById('contractSize').value);
+            // 獲取數據
+            const sym = document.getElementById('symbol').value;
+            const balance = parseFloat(document.getElementById('balance').value) || 0;
+            const riskPct = parseFloat(document.getElementById('riskPct').value) || 0;
+            const entry = parseFloat(document.getElementById('entryPrice').value) || 0;
+            const sl = parseFloat(document.getElementById('stopLoss').value) || 0;
+            const tp = parseFloat(document.getElementById('takeProfit').value) || 0;
+            const lev = parseFloat(document.getElementById('leverage').value) || 1;
+            
+            // 自動合約規格：黃金100，外匯100,000
+            const size = sym === 'XAUUSD' ? 100 : 100000;
 
             // 1. 風險金額
             const riskAmt = balance * (riskPct / 100);
 
-            // 2. 計算建議手數
-            const slDist = Math.abs(entry - sl);
-            const lots = riskAmt / (slDist * size);
+            // 2. 建議止損提示 (基於當前商品與 1% 風險的點位建議)
+            // 這裡設定一個通用的建議值，例如黃金 200 點，外匯 20 點
+            const defaultSlDist = sym === 'XAUUSD' ? 2 : 0.002; 
+            const suggestSL = direction === 'buy' ? entry - defaultSlDist : entry + defaultSlDist;
+            const suggestTP = direction === 'buy' ? entry + (defaultSlDist * 2) : entry - (defaultSlDist * 2);
             
-            // 3. 獲利與虧損
+            document.getElementById('suggestSL').innerText = suggestSL.toFixed(2);
+            document.getElementById('suggestTP').innerText = suggestTP.toFixed(2) + " (R:R 1:2)";
+
+            // 3. 計算手數 (Lots)
+            const slDist = Math.abs(entry - sl);
+            let lots = slDist > 0 ? riskAmt / (slDist * size) : 0;
+            
+            // 4. 獲利預算
             const tpDist = Math.abs(tp - entry);
             const profitAmt = lots * tpDist * size;
 
-            // 4. 盈虧比
+            // 5. 盈虧比
             const rr = slDist > 0 ? (tpDist / slDist).toFixed(2) : 0;
 
-            // 5. 保證金計算 (Entry * Size * Lots / Leverage)
+            // 6. 保證金
             const margin = (entry * size * lots) / lev;
-            const marginLevel = (balance / margin) * 100;
+            const marginLevel = margin > 0 ? (balance / margin) * 100 : 0;
 
-            // 6. 強制平倉預估 (簡化公式：虧損掉約 75% 餘額時)
-            const liqDist = (balance * 0.75) / (lots * size);
+            // 7. 強平價
+            const liqDist = lots > 0 ? (balance * 0.75) / (lots * size) : 0;
             const liqPrice = direction === 'buy' ? entry - liqDist : entry + liqDist;
 
             // 更新 UI
             document.getElementById('resLots').innerText = lots.toFixed(2);
-            document.getElementById('resRiskDesc').innerText = `基於 ${riskPct}% 風險控管`;
             document.getElementById('resLossMoney').innerText = `$${riskAmt.toFixed(2)}`;
             document.getElementById('resProfitMoney').innerText = `$${profitAmt.toFixed(2)}`;
             document.getElementById('resRR').innerText = `1 : ${rr}`;
@@ -178,7 +191,6 @@
             document.getElementById('resLiqPrice').innerText = `$${liqPrice.toFixed(2)}`;
         }
 
-        // 初始計算
         window.onload = calculateAll;
     </script>
 </body>
