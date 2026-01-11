@@ -169,4 +169,22 @@
             const rr = slDist > 0 ? (tpDist / slDist).toFixed(2) : 0;
             const margin = (entry * size * lots) / lev;
             const marginLevel = margin > 0 ? (balance / margin) * 100 : 0;
-            const liqDist = lots > 0 ? (balance * 0.75) / (lots * size
+            const liqDist = lots > 0 ? (balance * 0.75) / (lots * size) : 0;
+            const liqPrice = direction === 'buy' ? entry - liqDist : entry + liqDist;
+
+            document.getElementById('resLots').innerText = lots.toFixed(2);
+            document.getElementById('resLossMoney').innerText = `$${riskAmt.toFixed(2)}`;
+            document.getElementById('resProfitMoney').innerText = `$${profitAmt.toFixed(2)}`;
+            document.getElementById('resRR').innerText = `1 : ${rr}`;
+            document.getElementById('resMargin').innerText = `$${margin.toFixed(2)}`;
+            document.getElementById('resLiqPrice').innerText = liqPrice > 0 ? `$${liqPrice.toFixed(2)}` : "--";
+        }
+
+        window.onload = () => {
+            initChart();
+            autoFillSLTP(); // 初始載入自動填寫
+            calculateAll();
+        };
+    </script>
+</body>
+</html>
