@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Trading Dashboard</title>
+    <title>Professional Trading Dashboard - Auto SL/TP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0b0f1a; color: #e5e7eb; font-family: sans-serif; }
@@ -11,11 +11,12 @@
         .result-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; }
         .section-title { color: #58a6ff; font-weight: bold; border-bottom: 1px solid #30363d; padding-bottom: 8px; margin-bottom: 16px; }
         input, select { background-color: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px; width: 100%; color: #c9d1d9; font-size: 14px; }
+        input:focus { border-color: #58a6ff; outline: none; background-color: #161b22; }
         label { display: block; font-size: 12px; color: #8b949e; margin-bottom: 4px; font-weight: 600; }
         .btn-active { background-color: #1f6feb; border: 1px solid #58a6ff; color: white; }
         .btn-inactive { background-color: #21262d; border: 1px solid #30363d; color: #8b949e; }
-        .suggestion-box { background-color: rgba(35, 134, 54, 0.1); border: 1px dashed #238636; padding: 8px; border-radius: 6px; margin-top: 6px; }
         #tv-chart-container { height: 600px; border-radius: 12px; overflow: hidden; border: 1px solid #30363d; background: #161b22; }
+        .auto-badge { background: #238636; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 8px; vertical-align: middle; }
     </style>
 </head>
 <body class="py-6 px-4">
@@ -28,8 +29,8 @@
                 <div class="space-y-4">
                     <div>
                         <label>交易商品</label>
-                        <select id="symbol" onchange="updateChart(); calculateAll();">
-                            <option value="XAUUSD">黃金 (GOLD/XAUUSD)</option>
+                        <select id="symbol" onchange="updateChart(); autoFillSLTP(); calculateAll();">
+                            <option value="XAUUSD">黃金 (GOLD)</option>
                             <option value="EURUSD">歐美 (EURUSD)</option>
                             <option value="GBPUSD">鎊美 (GBPUSD)</option>
                             <option value="BTCUSD">比特幣 (BTCUSD)</option>
@@ -48,17 +49,18 @@
                         <button id="btnBuy" onclick="setDirection('buy')" class="flex-1 py-2 rounded btn-active font-bold">做多 BUY</button>
                         <button id="btnSell" onclick="setDirection('sell')" class="flex-1 py-2 rounded btn-inactive font-bold">做空 SELL</button>
                     </div>
-                    <div><label>進場價格</label><input type="number" id="entryPrice" value="2650" step="0.01" oninput="calculateAll()"></div>
+                    <div>
+                        <label>進場價格 <span class="text-[10px] text-gray-500">(更動將自動帶入建議 SL/TP)</span></label>
+                        <input type="number" id="entryPrice" value="2650" step="0.01" oninput="autoFillSLTP(); calculateAll();">
+                    </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-red-400">止損 (SL)</label>
-                            <input type="number" id="stopLoss" value="2645" step="0.01" oninput="calculateAll()">
-                            <div class="suggestion-box"><p id="suggestSL" class="text-[10px] font-mono text-green-400 font-bold"></p></div>
+                            <input type="number" id="stopLoss" step="0.01" oninput="calculateAll()">
                         </div>
                         <div>
                             <label class="text-blue-400">止盈 (TP)</label>
-                            <input type="number" id="takeProfit" value="2660" step="0.01" oninput="calculateAll()">
-                            <div class="suggestion-box"><p id="suggestTP" class="text-[10px] font-mono text-green-400 font-bold"></p></div>
+                            <input type="number" id="takeProfit" step="0.01" oninput="calculateAll()">
                         </div>
                     </div>
                 </div>
@@ -74,41 +76,35 @@
         <div class="lg:col-span-3 space-y-4">
             <div class="bg-orange-500 text-white p-6 rounded-xl text-center shadow-xl border-b-4 border-orange-700">
                 <p class="text-xs uppercase font-bold opacity-90">建議開倉手數 (LOTS)</p>
-                <h3 id="resLots" class="text-5xl font-black my-2">0.10</h3>
-                <p id="resRiskDesc" class="text-[10px] italic opacity-80 font-bold">根據風險管理自動計算</p>
+                <h3 id="resLots" class="text-5xl font-black my-2">0.00</h3>
+                <p id="resRiskDesc" class="text-[10px] italic opacity-80 font-bold tracking-widest">AUTO CALCULATED</p>
             </div>
 
             <div class="result-card p-6 space-y-4 shadow-2xl">
                 <h2 class="text-blue-400 font-bold border-b border-gray-800 pb-2 uppercase tracking-widest text-sm">數據分析 Results</h2>
                 <div class="flex justify-between border-b border-gray-800 pb-2">
                     <span class="text-gray-400 text-xs">盈虧比 (R:R)</span>
-                    <span id="resRR" class="text-blue-400 font-bold">1:2.00</span>
+                    <span id="resRR" class="text-blue-400 font-bold">--</span>
                 </div>
                 <div class="flex justify-between border-b border-gray-800 pb-2">
                     <span class="text-gray-400 text-xs">預計虧損 (Loss)</span>
-                    <span id="resLossMoney" class="text-red-400 font-bold">$20.00</span>
+                    <span id="resLossMoney" class="text-red-400 font-bold">$0.00</span>
                 </div>
                 <div class="flex justify-between border-b border-gray-800 pb-2">
                     <span class="text-gray-400 text-xs">預計獲利 (Profit)</span>
-                    <span id="resProfitMoney" class="text-green-400 font-bold">$40.00</span>
+                    <span id="resProfitMoney" class="text-green-400 font-bold">$0.00</span>
                 </div>
                 <div class="flex justify-between border-b border-gray-800 pb-2">
                     <span class="text-gray-400 text-xs">佔用保證金</span>
-                    <span id="resMargin" class="text-gray-200 font-bold">$53.00</span>
+                    <span id="resMargin" class="text-gray-200 font-bold">$0.00</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-400 text-xs">保證金比例</span>
-                    <span id="resMarginLevel" class="text-green-500 font-bold">3774%</span>
-                </div>
-
+                
                 <div class="bg-black/50 border border-yellow-500/20 p-4 rounded-lg text-center mt-6">
                     <p class="text-[10px] text-yellow-500/70 uppercase tracking-widest mb-1">強制平倉估價 (LIQ)</p>
-                    <p id="resLiqPrice" class="text-2xl font-bold font-mono text-yellow-500">$2500.00</p>
-                    <p class="text-[8px] text-gray-500 mt-1 uppercase italic">當淨值虧損達 75% 時</p>
+                    <p id="resLiqPrice" class="text-2xl font-bold font-mono text-yellow-500">--</p>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
@@ -117,34 +113,40 @@
 
         function initChart(symbol = 'OANDA:XAUUSD') {
             new TradingView.widget({
-                "autosize": true,
-                "symbol": symbol,
-                "interval": "H1",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "zh_TW",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "hide_side_toolbar": false,
-                "allow_symbol_change": true,
-                "container_id": "tradingview_chart"
+                "autosize": true, "symbol": symbol, "interval": "H1", "theme": "dark", "style": "1", "locale": "zh_TW", "container_id": "tradingview_chart"
             });
         }
 
         function updateChart() {
             const sym = document.getElementById('symbol').value;
-            let tvSym = 'OANDA:XAUUSD';
-            if(sym === 'EURUSD') tvSym = 'FX_IDC:EURUSD';
-            if(sym === 'GBPUSD') tvSym = 'FX_IDC:GBPUSD';
-            if(sym === 'BTCUSD') tvSym = 'BINANCE:BTCUSDT';
+            let tvSym = sym === 'XAUUSD' ? 'OANDA:XAUUSD' : (sym === 'BTCUSD' ? 'BINANCE:BTCUSDT' : `FX_IDC:${sym}`);
             initChart(tvSym);
+        }
+
+        // --- 新增自動填寫功能 ---
+        function autoFillSLTP() {
+            const sym = document.getElementById('symbol').value;
+            const entry = parseFloat(document.getElementById('entryPrice').value) || 0;
+            if (entry === 0) return;
+
+            // 定義建議點差 (黃金 5美金, 外匯 50點)
+            let slDist = sym === 'XAUUSD' ? 5 : (sym === 'BTCUSD' ? 500 : 0.0050);
+            let tpDist = slDist * 2; // 盈虧比預設 1:2
+
+            if (direction === 'buy') {
+                document.getElementById('stopLoss').value = (entry - slDist).toFixed(2);
+                document.getElementById('takeProfit').value = (entry + tpDist).toFixed(2);
+            } else {
+                document.getElementById('stopLoss').value = (entry + slDist).toFixed(2);
+                document.getElementById('takeProfit').value = (entry - tpDist).toFixed(2);
+            }
         }
 
         function setDirection(d) {
             direction = d;
             document.getElementById('btnBuy').className = d === 'buy' ? 'flex-1 py-2 rounded btn-active font-bold' : 'flex-1 py-2 rounded btn-inactive font-bold';
             document.getElementById('btnSell').className = d === 'sell' ? 'flex-1 py-2 rounded btn-active font-bold' : 'flex-1 py-2 rounded btn-inactive font-bold';
+            autoFillSLTP(); // 方向改變也自動填寫
             calculateAll();
         }
 
@@ -157,46 +159,14 @@
             const tp = parseFloat(document.getElementById('takeProfit').value) || 0;
             const lev = parseFloat(document.getElementById('leverage').value) || 1;
             
-            // 自動合約規格 (後台判斷)
-            let size = 100000;
-            if(sym === 'XAUUSD') size = 100;
-            if(sym === 'BTCUSD') size = 1;
-
+            let size = sym === 'XAUUSD' ? 100 : (sym === 'BTCUSD' ? 1 : 100000);
             const riskAmt = balance * (riskPct / 100);
-
-            // 建議值邏輯
-            const defaultSlDist = sym === 'XAUUSD' ? 5 : 0.005; 
-            const sSL = direction === 'buy' ? entry - defaultSlDist : entry + defaultSlDist;
-            const sTP = direction === 'buy' ? entry + (defaultSlDist * 2) : entry - (defaultSlDist * 2);
-            document.getElementById('suggestSL').innerText = "建議 SL: " + sSL.toFixed(2);
-            document.getElementById('suggestTP').innerText = "建議 TP: " + sTP.toFixed(2);
-
-            // 計算手數
             const slDist = Math.abs(entry - sl);
+            
             let lots = slDist > 0 ? riskAmt / (slDist * size) : 0;
             const tpDist = Math.abs(tp - entry);
             const profitAmt = lots * tpDist * size;
             const rr = slDist > 0 ? (tpDist / slDist).toFixed(2) : 0;
             const margin = (entry * size * lots) / lev;
             const marginLevel = margin > 0 ? (balance / margin) * 100 : 0;
-            const liqDist = lots > 0 ? (balance * 0.75) / (lots * size) : 0;
-            const liqPrice = direction === 'buy' ? entry - liqDist : entry + liqDist;
-
-            // UI 更新
-            document.getElementById('resLots').innerText = lots.toFixed(2);
-            document.getElementById('resLossMoney').innerText = `$${riskAmt.toFixed(2)}`;
-            document.getElementById('resProfitMoney').innerText = `$${profitAmt.toFixed(2)}`;
-            document.getElementById('resRR').innerText = `1 : ${rr}`;
-            document.getElementById('resMargin').innerText = `$${margin.toFixed(2)}`;
-            document.getElementById('resMarginLevel').innerText = `${marginLevel.toFixed(0)}%`;
-            document.getElementById('resLiqPrice').innerText = `$${liqPrice.toFixed(2)}`;
-        }
-
-        // 初始化
-        window.onload = () => {
-            initChart();
-            calculateAll();
-        };
-    </script>
-</body>
-</html>
+            const liqDist = lots > 0 ? (balance * 0.75) / (lots * size
