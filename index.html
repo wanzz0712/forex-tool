@@ -3,26 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>專業交易風控計算器 - 進階版</title>
+    <title>專業交易風控 - 深色版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #f3f4f6; color: #374151; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .input-card { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .result-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .section-title { color: #1e40af; font-weight: bold; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 16px; }
-        input, select { border: 1px solid #d1d5db; border-radius: 4px; padding: 10px; width: 100%; font-size: 14px; background-color: #f9fafb; }
-        label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; font-weight: 600; }
-        .btn-active { background-color: #eff6ff; border: 2px solid #3b82f6; color: #1e40af; }
-        .btn-inactive { background-color: white; border: 1px solid #d1d5db; color: #6b7280; }
-        .suggestion-box { background-color: #f0fdf4; border: 1px dashed #22c55e; padding: 8px; border-radius: 6px; margin-top: 4px; }
+        body { background-color: #0b0f1a; color: #e5e7eb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .input-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; }
+        .result-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; }
+        .section-title { color: #58a6ff; font-weight: bold; border-bottom: 1px solid #30363d; padding-bottom: 8px; margin-bottom: 16px; }
+        
+        /* 輸入框樣式優化 */
+        input, select { 
+            background-color: #0d1117; 
+            border: 1px solid #30363d; 
+            border-radius: 6px; 
+            padding: 10px; 
+            width: 100%; 
+            font-size: 14px; 
+            color: #c9d1d9;
+            transition: border-color 0.2s;
+        }
+        input:focus { border-color: #58a6ff; outline: none; }
+        
+        label { display: block; font-size: 12px; color: #8b949e; margin-bottom: 4px; font-weight: 600; }
+        
+        /* 按鈕樣式 */
+        .btn-active { background-color: #1f6feb; border: 1px solid #58a6ff; color: white; }
+        .btn-inactive { background-color: #21262d; border: 1px solid #30363d; color: #8b949e; }
+        
+        /* 建議框 */
+        .suggestion-box { background-color: rgba(35, 134, 54, 0.1); border: 1px dashed #238636; padding: 8px; border-radius: 6px; margin-top: 6px; }
     </style>
 </head>
 <body class="py-10 px-4">
 
     <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
         
-        <div class="input-card p-6">
-            <h2 class="section-title">1. 帳戶與基本設定</h2>
+        <div class="input-card p-6 shadow-2xl">
+            <h2 class="section-title text-blue-400">1. 帳戶與基本設定</h2>
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div class="col-span-2">
                     <label>交易商品 (Symbol)</label>
@@ -45,11 +62,11 @@
                 </div>
             </div>
 
-            <h2 class="section-title">2. 交易計劃</h2>
+            <h2 class="section-title text-blue-400">2. 交易計劃</h2>
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div class="col-span-2 flex gap-2">
-                    <button id="btnBuy" onclick="setDirection('buy')" class="flex-1 py-2 rounded btn-active font-bold">做多 (BUY) 📈</button>
-                    <button id="btnSell" onclick="setDirection('sell')" class="flex-1 py-2 rounded btn-inactive font-bold">做空 (SELL) 📉</button>
+                    <button id="btnBuy" onclick="setDirection('buy')" class="flex-1 py-2 rounded btn-active font-bold">做多 (BUY)</button>
+                    <button id="btnSell" onclick="setDirection('sell')" class="flex-1 py-2 rounded btn-inactive font-bold">做空 (SELL)</button>
                 </div>
                 <div class="col-span-2">
                     <label>進場價格 (Entry Price)</label>
@@ -57,74 +74,74 @@
                 </div>
                 
                 <div>
-                    <label class="text-red-600">手動止損 (Stop Loss)</label>
+                    <label class="text-red-400">止損 (Stop Loss)</label>
                     <input type="number" id="stopLoss" value="2298" step="0.01" oninput="calculateAll()">
                     <div class="suggestion-box">
-                        <p class="text-[10px] text-green-700 font-bold">建議止損 (SL)</p>
-                        <p id="suggestSL" class="text-sm font-mono text-green-800">--</p>
+                        <p class="text-[10px] text-green-400 font-bold uppercase">建議止損 (SL)</p>
+                        <p id="suggestSL" class="text-sm font-mono text-green-100">--</p>
                     </div>
                 </div>
 
                 <div>
-                    <label class="text-blue-600">手動止盈 (Take Profit)</label>
+                    <label class="text-blue-400">止盈 (Take Profit)</label>
                     <input type="number" id="takeProfit" value="2304" step="0.01" oninput="calculateAll()">
                     <div class="suggestion-box">
-                        <p class="text-[10px] text-green-700 font-bold">建議止盈 (TP)</p>
-                        <p id="suggestTP" class="text-sm font-mono text-green-800">--</p>
+                        <p class="text-[10px] text-green-400 font-bold uppercase">建議止盈 (TP)</p>
+                        <p id="suggestTP" class="text-sm font-mono text-green-100">--</p>
                     </div>
                 </div>
             </div>
 
-            <button onclick="calculateAll()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg text-lg transition shadow-lg mt-4">
-                立即更新數據
+            <button onclick="calculateAll()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-lg text-lg transition shadow-lg mt-4">
+                立即更新數據 (CALCULATE)
             </button>
         </div>
 
         <div class="space-y-4">
-            <h2 class="text-blue-900 font-bold text-lg mb-2">3. 計算結果 (Results)</h2>
+            <h2 class="text-blue-400 font-bold text-lg mb-2">3. 計算結果 (Results)</h2>
             
-            <div class="bg-orange-400 text-white p-6 rounded-lg text-center shadow-md">
+            <div class="bg-orange-500 text-white p-6 rounded-lg text-center shadow-lg border-b-4 border-orange-700">
                 <p class="text-xs uppercase opacity-90 font-bold">建議開倉手數 (Lots)</p>
-                <h3 id="resLots" class="text-6xl font-black my-2">0.10</h3>
-                <p id="resRiskDesc" class="text-xs italic">基於風險管理自動計算</p>
+                <h3 id="resLots" class="text-6xl font-black my-2 tracking-tighter">0.10</h3>
+                <p id="resRiskDesc" class="text-xs italic opacity-80">基於風險管理自動計算</p>
             </div>
 
             <div class="grid grid-cols-2 gap-4 text-white font-bold">
-                <div class="bg-red-500 p-4 rounded-lg text-center shadow">
-                    <p class="text-xs opacity-80 uppercase">止損預計虧損</p>
-                    <p id="resLossMoney" class="text-xl">$20.00</p>
+                <div class="bg-red-900/50 border border-red-500/50 p-4 rounded-lg text-center">
+                    <p class="text-xs text-red-300 uppercase">止損虧損</p>
+                    <p id="resLossMoney" class="text-xl text-red-100">$20.00</p>
                 </div>
-                <div class="bg-blue-600 p-4 rounded-lg text-center shadow">
-                    <p class="text-xs opacity-80 uppercase">止盈預計獲利</p>
-                    <p id="resProfitMoney" class="text-xl">$40.00</p>
+                <div class="bg-blue-900/50 border border-blue-500/50 p-4 rounded-lg text-center">
+                    <p class="text-xs text-blue-300 uppercase">止盈獲利</p>
+                    <p id="resProfitMoney" class="text-xl text-blue-100">$40.00</p>
                 </div>
             </div>
 
             <div class="result-card p-6 space-y-4 text-sm">
-                <div class="flex justify-between border-b pb-2">
-                    <span class="text-gray-500">盈虧比 (R:R Ratio)</span>
-                    <span id="resRR" class="font-bold text-blue-700">1 : 2.00</span>
+                <div class="flex justify-between border-b border-gray-700 pb-2">
+                    <span class="text-gray-400 font-medium">盈虧比 (R:R Ratio)</span>
+                    <span id="resRR" class="font-bold text-blue-400">1 : 2.00</span>
                 </div>
-                <div class="flex justify-between border-b pb-2">
-                    <span class="text-gray-500">佔用保證金 (Margin)</span>
-                    <span id="resMargin" class="font-bold text-gray-700">$46.00</span>
+                <div class="flex justify-between border-b border-gray-700 pb-2">
+                    <span class="text-gray-400 font-medium">佔用保證金 (Margin)</span>
+                    <span id="resMargin" class="font-bold text-gray-200">$46.00</span>
                 </div>
-                <div class="flex justify-between border-b pb-2">
-                    <span class="text-gray-500">保證金比例 (Margin Level)</span>
-                    <span id="resMarginLevel" class="font-bold text-green-600">4347%</span>
+                <div class="flex justify-between border-b border-gray-700 pb-2">
+                    <span class="text-gray-400 font-medium">保證金比例 (Level)</span>
+                    <span id="resMarginLevel" class="font-bold text-green-400">4347%</span>
                 </div>
                 
-                <div class="bg-slate-800 text-yellow-400 p-4 rounded-lg text-center mt-6 shadow-inner">
-                    <p class="text-[10px] uppercase mb-1 tracking-widest">強制平倉參考價 (Liquidation)</p>
+                <div class="bg-black/50 border border-yellow-500/30 text-yellow-500 p-4 rounded-lg text-center mt-6">
+                    <p class="text-[10px] uppercase mb-1 tracking-widest opacity-80">強制平倉參考價 (Liquidation)</p>
                     <p id="resLiqPrice" class="text-2xl font-bold font-mono">$2250.00</p>
-                    <p class="text-[9px] text-gray-400 mt-1">當餘額虧損達 75% 時</p>
+                    <p class="text-[9px] text-gray-500 mt-1">當可用保證金不足時</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <footer class="text-center text-gray-400 text-[10px] mt-10">
-        © ForexRiskHub | 僅供參考，交易請謹慎。
+    <footer class="text-center text-gray-600 text-[10px] mt-10">
+        © ForexRiskHub | 技術支援：Gemini | 交易有風險，操作需謹慎。
     </footer>
 
     <script>
@@ -138,7 +155,6 @@
         }
 
         function calculateAll() {
-            // 獲取數據
             const sym = document.getElementById('symbol').value;
             const balance = parseFloat(document.getElementById('balance').value) || 0;
             const riskPct = parseFloat(document.getElementById('riskPct').value) || 0;
@@ -147,37 +163,28 @@
             const tp = parseFloat(document.getElementById('takeProfit').value) || 0;
             const lev = parseFloat(document.getElementById('leverage').value) || 1;
             
-            // 自動合約規格：黃金100，外匯100,000
+            // 自動合約規格 (後台處理)
             const size = sym === 'XAUUSD' ? 100 : 100000;
 
-            // 1. 風險金額
             const riskAmt = balance * (riskPct / 100);
 
-            // 2. 建議止損提示 (基於當前商品與 1% 風險的點位建議)
-            // 這裡設定一個通用的建議值，例如黃金 200 點，外匯 20 點
+            // 建議值邏輯
             const defaultSlDist = sym === 'XAUUSD' ? 2 : 0.002; 
             const suggestSL = direction === 'buy' ? entry - defaultSlDist : entry + defaultSlDist;
             const suggestTP = direction === 'buy' ? entry + (defaultSlDist * 2) : entry - (defaultSlDist * 2);
             
             document.getElementById('suggestSL').innerText = suggestSL.toFixed(2);
-            document.getElementById('suggestTP').innerText = suggestTP.toFixed(2) + " (R:R 1:2)";
+            document.getElementById('suggestTP').innerText = suggestTP.toFixed(2) + " (1:2)";
 
-            // 3. 計算手數 (Lots)
+            // 計算手數
             const slDist = Math.abs(entry - sl);
             let lots = slDist > 0 ? riskAmt / (slDist * size) : 0;
             
-            // 4. 獲利預算
             const tpDist = Math.abs(tp - entry);
             const profitAmt = lots * tpDist * size;
-
-            // 5. 盈虧比
             const rr = slDist > 0 ? (tpDist / slDist).toFixed(2) : 0;
-
-            // 6. 保證金
             const margin = (entry * size * lots) / lev;
             const marginLevel = margin > 0 ? (balance / margin) * 100 : 0;
-
-            // 7. 強平價
             const liqDist = lots > 0 ? (balance * 0.75) / (lots * size) : 0;
             const liqPrice = direction === 'buy' ? entry - liqDist : entry + liqDist;
 
